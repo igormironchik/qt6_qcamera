@@ -9,7 +9,7 @@ import QtMultimedia
 ApplicationWindow {
     id: appWindow
     visible: true
-    width: 400
+    width: 600
     height: 600
 
     Frames {
@@ -19,10 +19,13 @@ ApplicationWindow {
 
     Column {
         anchors.centerIn:  parent
-        anchors.fill: parent
+        width: parent.width
 
         Text {
             text: frames.formatString
+            anchors.horizontalCenter: parent.horizontalCenter
+            font.bold: true
+            font.pointSize: 15
         }
 
         VideoOutput {

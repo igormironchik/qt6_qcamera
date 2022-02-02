@@ -22,6 +22,7 @@ find_package( Qt6Qml REQUIRED )
 find_package( Qt6Multimedia REQUIRED )
 find_package( Qt6Gui REQUIRED )
 find_package( Qt6Quick REQUIRED )
+find_package( Qt6Widgets REQUIRED )
 
 set( SRC frames.cpp
     frames.hpp
@@ -41,4 +42,4 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libyuv/include )
 
 add_executable( qt6_qcamera WIN32 ${SRC} )
 
-target_link_libraries( qt6_qcamera PUBLIC yuv ${CAMERA_JPEG} Qt::Qml Qt::Quick Qt::Multimedia Qt::Gui Qt::Network Qt::Core )
+target_link_libraries( qt6_qcamera PUBLIC yuv ${CAMERA_JPEG} Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )

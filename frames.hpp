@@ -1,4 +1,30 @@
 
+/*!
+	\author Igor Mironchik (igor dot mironchik at gmail dot com).
+
+	MIT License
+
+	Copyright (c) 2022 Igor Mironchik
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+*/
+
 #ifndef FRAMES_HPP_INCLUDED
 #define FRAMES_HPP_INCLUDED
 
@@ -9,7 +35,7 @@
 #include <QPointer>
 
 
-namespace Stock {
+namespace Qt6QCamera {
 
 //
 // Frames
@@ -49,10 +75,15 @@ public:
 	//! Set sink of video output.
 	void setVideoSink( QVideoSink * newVideoSink );
 
+	//! \return Rotation angle.
 	qreal angle() const;
+	//! \return X scale factor.
 	qreal xScale() const;
+	//! \return Y scale factor
 	qreal yScale() const;
+	//! \return Format of video frame as string.
 	QString formatString() const;
+	//! \return FPS as string.
 	QString fpsString() const;
 
 private slots:
@@ -84,6 +115,6 @@ private:
 	QTimer * m_1s;
 }; // class Frames
 
-} /* namespace Stock */
+} /* namespace Qt6QCamera */
 
 #endif // FRAMES_HPP_INCLUDED

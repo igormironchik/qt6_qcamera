@@ -1,4 +1,30 @@
 
+/*!
+	\author Igor Mironchik (igor dot mironchik at gmail dot com).
+
+	MIT License
+
+	Copyright (c) 2022 Igor Mironchik
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+*/
+
 #include "frames.hpp"
 
 // Qt include.
@@ -7,8 +33,43 @@
 #include <QThreadPool>
 #include <QTimer>
 
+// libyuv include.
+#include <libyuv.h>
 
-namespace Stock {
+
+namespace Qt6QCamera {
+
+//
+// libyuvFormat
+//
+
+libyuv::FourCC libyuvFormat( QVideoFrameFormat::PixelFormat f )
+{
+	// Enlarge this switch to handle more pixel formats if you need it.
+	switch( f )
+	{
+		case QVideoFrameFormat::Format_YUYV :
+			return libyuv::FOURCC_YUYV;
+
+		case QVideoFrameFormat::Format_UYVY :
+			return libyuv::FOURCC_UYVY;
+
+		case QVideoFrameFormat::Format_YUV420P :
+			return libyuv::FOURCC_I420;
+
+		case QVideoFrameFormat::Format_YUV422P :
+			return libyuv::FOURCC_I422;
+
+		case QVideoFrameFormat::Format_NV12 :
+			return libyuv::FOURCC_NV12;
+
+		case QVideoFrameFormat::Format_NV21 :
+			return libyuv::FOURCC_NV21;
+
+		default :
+			return libyuv::FOURCC_ANY;
+	}
+}
 
 //
 // Frames
@@ -56,6 +117,52 @@ Frames::setVideoSink( QVideoSink * newVideoSink )
 void
 Frames::newFrame( const QVideoFrame & frame )
 {
+	QVideoFrame f = frame;
+	f.map( QVideoFrame::ReadOnly );
+
+	if( f.isValid() )
+	{
+		const auto fmt = QVideoFrameFormat::imageFormatFromPixelFormat( f.pixelFormat() );
+
+		QImage image;
+
+		if( fmt != QImage::Format_Invalid )
+			image = QImage( f.bits( 0 ), f.width(), f.height(), f.bytesPerLine( 0 ), fmt );
+		else if( f.pixelFormat() == QVideoFrameFormat::Format_Jpeg )
+			image.loadFromData( f.bits( 0 ), f.mappedBytes( 0 ) );
+		else
+		{
+			const auto format = libyuvFormat( f.pixelFormat() );
+
+			if( format != libyuv::FOURCC_ANY )
+			{
+				std::vector< uint8_t > data( f.width() * f.height() * 4, 0 );
+
+				libyuv::ConvertToARGB( static_cast< uint8_t* > ( f.bits( 0 ) ),
+					f.bytesPerLine( 0 ) * f.height(),
+					&data[ 0 ],
+					f.width() * 4,
+					0, 0,
+					f.width(),
+					f.height(),
+					f.width(),
+					f.height(),
+					libyuv::kRotate0,
+					format );
+
+				image = QImage( static_cast< uchar* > ( &data[ 0 ] ), f.width(), f.height(),
+					f.width() * 4, QImage::Format_ARGB32 ).copy();
+			}
+			else
+				qWarning() << "Unsupported video frame format:" << format;
+		}
+
+		f.unmap();
+
+		// Here image is valid QImage with correct data.
+		// You can do what you need with QImage. Enjoy.
+	}
+
 	++m_fps;
 
 	if( m_videoSink )
@@ -65,7 +172,7 @@ Frames::newFrame( const QVideoFrame & frame )
 void
 Frames::registerQmlType()
 {
-	qmlRegisterType< Stock::Frames > ( "Frames", 0, 1, "Frames" );
+	qmlRegisterType< Qt6QCamera::Frames > ( "Frames", 0, 1, "Frames" );
 }
 
 QString
@@ -178,8 +285,8 @@ Frames::initCam()
 
 	const auto settings = m_cam->cameraDevice().videoFormats();
 
+	// Here you can select format of video frame.
 	int i = 0;
-
 	const auto s = settings.at( i );
 
 	m_cam->setFocusMode( QCamera::FocusModeAuto );
@@ -248,4 +355,4 @@ Frames::timer()
 	emit fpsStringChanged();
 }
 
-} /* namespace Stock */
+} /* namespace Qt6QCamera */
