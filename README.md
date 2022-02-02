@@ -1,1 +1,1 @@
-This project is just a tutorial how to work with QCamera, QVideSink in Qt6.
+This project is just a tutorial how to work with QCamera, QVideoSink in Qt6.
