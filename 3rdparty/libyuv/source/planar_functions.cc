@@ -853,6 +853,122 @@ int NV21ToNV12(const uint8_t* src_y,
   return 0;
 }
 
+// Detile a plane of data
+// tile width is 16 and assumed.
+// tile_height is 16 or 32 for MM21.
+// src_stride_y is bytes per row of source ignoring tiling. e.g. 640
+// TODO: More detile row functions.
+
+LIBYUV_API
+void DetilePlane(const uint8_t* src_y,
+                 int src_stride_y,
+                 uint8_t* dst_y,
+                 int dst_stride_y,
+                 int width,
+                 int height,
+                 int tile_height) {
+  const ptrdiff_t src_tile_stride = 16 * tile_height;
+  int y;
+  void (*DetileRow)(const uint8_t* src, ptrdiff_t src_tile_stride, uint8_t* dst,
+                    int width) = DetileRow_C;
+  assert(src_stride_y >= 0);
+  assert(tile_height > 0);
+  assert(src_stride_y > 0);
+
+  // Negative height means invert the image.
+  if (height < 0) {
+    height = -height;
+    dst_y = dst_y + (height - 1) * dst_stride_y;
+    dst_stride_y = -dst_stride_y;
+  }
+
+#if defined(HAS_DETILEROW_SSE2)
+  if (TestCpuFlag(kCpuHasSSE2)) {
+    DetileRow = DetileRow_Any_SSE2;
+    if (IS_ALIGNED(width, 16)) {
+      DetileRow = DetileRow_SSE2;
+    }
+  }
+#endif
+#if defined(HAS_DETILEROW_NEON)
+  if (TestCpuFlag(kCpuHasNEON)) {
+    DetileRow = DetileRow_Any_NEON;
+    if (IS_ALIGNED(width, 16)) {
+      DetileRow = DetileRow_NEON;
+    }
+  }
+#endif
+
+  // Detile plane
+  for (y = 0; y < height; ++y) {
+    DetileRow(src_y, src_tile_stride, dst_y, width);
+    dst_y += dst_stride_y;
+    src_y += 16;
+    // Advance to next row of tiles.
+    if ((y & (tile_height - 1)) == (tile_height - 1)) {
+      src_y = src_y - src_tile_stride + src_stride_y * tile_height;
+    }
+  }
+}
+
+LIBYUV_API
+void DetileSplitUVPlane(const uint8_t* src_uv,
+                        int src_stride_uv,
+                        uint8_t* dst_u,
+                        int dst_stride_u,
+                        uint8_t* dst_v,
+                        int dst_stride_v,
+                        int width,
+                        int height,
+                        int tile_height) {
+  const ptrdiff_t src_tile_stride = 16 * tile_height;
+  int y;
+  void (*DetileSplitUVRow)(const uint8_t* src, ptrdiff_t src_tile_stride,
+                           uint8_t* dst_u, uint8_t* dst_v, int width) =
+      DetileSplitUVRow_C;
+  assert(src_stride_uv >= 0);
+  assert(tile_height > 0);
+  assert(src_stride_uv > 0);
+
+  // Negative height means invert the image.
+  if (height < 0) {
+    height = -height;
+    dst_u = dst_u + (height - 1) * dst_stride_u;
+    dst_stride_u = -dst_stride_u;
+    dst_v = dst_v + (height - 1) * dst_stride_v;
+    dst_stride_v = -dst_stride_v;
+  }
+
+#if defined(HAS_DETILESPLITUVROW_SSSE3)
+  if (TestCpuFlag(kCpuHasSSSE3)) {
+    DetileSplitUVRow = DetileSplitUVRow_Any_SSSE3;
+    if (IS_ALIGNED(width, 16)) {
+      DetileSplitUVRow = DetileSplitUVRow_SSSE3;
+    }
+  }
+#endif
+#if defined(HAS_DETILESPLITROW_NEON)
+  if (TestCpuFlag(kCpuHasNEON)) {
+    DetileSplitUVRow = DetileSplitUVRow_Any_NEON;
+    if (IS_ALIGNED(width, 16)) {
+      DetileSplitUVRow = DetileSplitUVRow_NEON;
+    }
+  }
+#endif
+
+  // Detile plane
+  for (y = 0; y < height; ++y) {
+    DetileSplitUVRow(src_uv, src_tile_stride, dst_u, dst_v, width);
+    dst_u += dst_stride_u;
+    dst_v += dst_stride_v;
+    src_uv += 16;
+    // Advance to next row of tiles.
+    if ((y & (tile_height - 1)) == (tile_height - 1)) {
+      src_uv = src_uv - src_tile_stride + src_stride_uv * tile_height;
+    }
+  }
+}
+
 // Support function for NV12 etc RGB channels.
 // Width and height are plane sizes (typically half pixel width).
 LIBYUV_API

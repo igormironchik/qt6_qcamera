@@ -290,6 +290,8 @@ extern "C" {
 #define HAS_AB64TOARGBROW_SSSE3
 #define HAS_CONVERT16TO8ROW_SSSE3
 #define HAS_CONVERT8TO16ROW_SSE2
+#define HAS_DETILEROW_SSE2
+#define HAS_DETILESPLITUVROW_SSSE3
 #define HAS_HALFMERGEUVROW_SSSE3
 #define HAS_I210TOAR30ROW_SSSE3
 #define HAS_I210TOARGBROW_SSSE3
@@ -400,8 +402,8 @@ extern "C" {
 
 // The following are available for AVX512 clang x64 platforms:
 // TODO(fbarchard): Port to x86
-#if !defined(LIBYUV_DISABLE_X86) && \
-    defined(__x86_64__) && (defined(CLANG_HAS_AVX512))
+#if !defined(LIBYUV_DISABLE_X86) && defined(__x86_64__) && \
+    (defined(CLANG_HAS_AVX512))
 #define HAS_I422TOARGBROW_AVX512BW
 #endif
 
@@ -536,7 +538,8 @@ extern "C" {
 #define HAS_SCALESUMSAMPLES_NEON
 #define HAS_GAUSSROW_F32_NEON
 #define HAS_GAUSSCOL_F32_NEON
-
+#define HAS_DETILEROW_NEON
+#define HAS_DETILESPLITUVROW_NEON
 #endif
 #if !defined(LIBYUV_DISABLE_MSA) && defined(__mips_msa)
 #define HAS_ABGRTOUVROW_MSA
@@ -1768,7 +1771,9 @@ void ARGBMirrorRow_Any_NEON(const uint8_t* src_ptr,
                             uint8_t* dst_ptr,
                             int width);
 void ARGBMirrorRow_Any_MSA(const uint8_t* src_ptr, uint8_t* dst_ptr, int width);
-void ARGBMirrorRow_Any_LASX(const uint8_t* src_ptr, uint8_t* dst_ptr, int width);
+void ARGBMirrorRow_Any_LASX(const uint8_t* src_ptr,
+                            uint8_t* dst_ptr,
+                            int width);
 
 void RGB24MirrorRow_SSSE3(const uint8_t* src_rgb24,
                           uint8_t* dst_rgb24,
@@ -1828,7 +1833,52 @@ void SplitUVRow_Any_LSX(const uint8_t* src_ptr,
                         uint8_t* dst_u,
                         uint8_t* dst_v,
                         int width);
+void DetileRow_C(const uint8_t* src,
+                 ptrdiff_t src_tile_stride,
+                 uint8_t* dst,
+                 int width);
 
+void DetileRow_NEON(const uint8_t* src,
+                    ptrdiff_t src_tile_stride,
+                    uint8_t* dst,
+                    int width);
+void DetileRow_Any_NEON(const uint8_t* src,
+                        ptrdiff_t src_tile_stride,
+                        uint8_t* dst,
+                        int width);
+void DetileRow_SSE2(const uint8_t* src,
+                    ptrdiff_t src_tile_stride,
+                    uint8_t* dst,
+                    int width);
+void DetileRow_Any_SSE2(const uint8_t* src,
+                        ptrdiff_t src_tile_stride,
+                        uint8_t* dst,
+                        int width);
+void DetileSplitUVRow_C(const uint8_t* src_uv,
+                        ptrdiff_t src_tile_stride,
+                        uint8_t* dst_u,
+                        uint8_t* dst_v,
+                        int width);
+void DetileSplitUVRow_SSSE3(const uint8_t* src_uv,
+                            ptrdiff_t src_tile_stride,
+                            uint8_t* dst_u,
+                            uint8_t* dst_v,
+                            int width);
+void DetileSplitUVRow_Any_SSSE3(const uint8_t* src_uv,
+                                ptrdiff_t src_tile_stride,
+                                uint8_t* dst_u,
+                                uint8_t* dst_v,
+                                int width);
+void DetileSplitUVRow_NEON(const uint8_t* src_uv,
+                           ptrdiff_t src_tile_stride,
+                           uint8_t* dst_u,
+                           uint8_t* dst_v,
+                           int width);
+void DetileSplitUVRow_Any_NEON(const uint8_t* src_uv,
+                               ptrdiff_t src_tile_stride,
+                               uint8_t* dst_u,
+                               uint8_t* dst_v,
+                               int width);
 void MergeUVRow_C(const uint8_t* src_u,
                   const uint8_t* src_v,
                   uint8_t* dst_uv,
@@ -2801,7 +2851,6 @@ void ARGBToARGB1555Row_LASX(const uint8_t* src_argb,
 void ARGBToARGB4444Row_LASX(const uint8_t* src_argb,
                             uint8_t* dst_rgb,
                             int width);
-
 
 void ARGBToRGBARow_C(const uint8_t* src_argb, uint8_t* dst_rgb, int width);
 void ARGBToRGB24Row_C(const uint8_t* src_argb, uint8_t* dst_rgb, int width);
@@ -4097,7 +4146,6 @@ void ARGBToARGB4444Row_Any_LASX(const uint8_t* src_ptr,
                                 uint8_t* dst_ptr,
                                 int width);
 
-
 void I444ToARGBRow_Any_NEON(const uint8_t* y_buf,
                             const uint8_t* u_buf,
                             const uint8_t* v_buf,
@@ -4878,7 +4926,6 @@ void ARGBQuantizeRow_LSX(uint8_t* dst_argb,
                          int interval_offset,
                          int width);
 
-
 void ARGBShadeRow_C(const uint8_t* src_argb,
                     uint8_t* dst_argb,
                     int width,
@@ -4911,7 +4958,6 @@ void ComputeCumulativeSumRow_SSE2(const uint8_t* row,
                                   int32_t* cumsum,
                                   const int32_t* previous_cumsum,
                                   int width);
-
 
 void CumulativeSumToAverageRow_C(const int32_t* tl,
                                  const int32_t* bl,
@@ -5258,7 +5304,6 @@ float ScaleSumSamples_NEON(const float* src,
                            int width);
 void ScaleSamples_C(const float* src, float* dst, float scale, int width);
 void ScaleSamples_NEON(const float* src, float* dst, float scale, int width);
-
 
 void GaussRow_F32_NEON(const float* src, float* dst, int width);
 void GaussRow_F32_C(const float* src, float* dst, int width);
