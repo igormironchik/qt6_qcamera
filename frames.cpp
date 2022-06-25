@@ -175,109 +175,6 @@ Frames::registerQmlType()
 	qmlRegisterType< Qt6QCamera::Frames > ( "Frames", 0, 1, "Frames" );
 }
 
-QString
-pixelFormatToString( QVideoFrameFormat::PixelFormat f )
-{
-	switch( f )
-	{
-		case QVideoFrameFormat::Format_ARGB8888 :
-			return QStringLiteral( "ARGB8888" );
-
-		case QVideoFrameFormat::Format_ARGB8888_Premultiplied :
-			return QStringLiteral( "ARGB8888P" );
-
-		case QVideoFrameFormat::Format_XRGB8888 :
-			return QStringLiteral( "XRGB8888" );
-
-		case QVideoFrameFormat::Format_BGRA8888 :
-			return QStringLiteral( "BGRA8888" );
-
-		case QVideoFrameFormat::Format_BGRA8888_Premultiplied :
-			return QStringLiteral( "BGRA8888P" );
-
-		case QVideoFrameFormat::Format_BGRX8888 :
-			return QStringLiteral( "BGRX8888" );
-
-		case QVideoFrameFormat::Format_ABGR8888 :
-			return QStringLiteral( "ARGB8888" );
-
-		case QVideoFrameFormat::Format_XBGR8888 :
-			return QStringLiteral( "XBGR8888" );
-
-		case QVideoFrameFormat::Format_RGBA8888 :
-			return QStringLiteral( "RGBA8888" );
-
-		case QVideoFrameFormat::Format_RGBX8888 :
-			return QStringLiteral( "RGBX8888" );
-
-		case QVideoFrameFormat::Format_AYUV :
-			return QStringLiteral( "AYUV" );
-
-		case QVideoFrameFormat::Format_AYUV_Premultiplied :
-			return QStringLiteral( "AYUVP" );
-
-		case QVideoFrameFormat::Format_YUV420P :
-			return QStringLiteral( "YUV420P" );
-
-		case QVideoFrameFormat::Format_YUV422P :
-			return QStringLiteral( "YUV422P" );
-
-		case QVideoFrameFormat::Format_YV12 :
-			return QStringLiteral( "YV12" );
-
-		case QVideoFrameFormat::Format_UYVY :
-			return QStringLiteral( "UYVY" );
-
-		case QVideoFrameFormat::Format_YUYV :
-			return QStringLiteral( "YUYV" );
-
-		case QVideoFrameFormat::Format_NV12 :
-			return QStringLiteral( "NV12" );
-
-		case QVideoFrameFormat::Format_NV21 :
-			return QStringLiteral( "NV21" );
-
-		case QVideoFrameFormat::Format_IMC1 :
-			return QStringLiteral( "IMC1" );
-
-		case QVideoFrameFormat::Format_IMC2 :
-			return QStringLiteral( "IMC2" );
-
-		case QVideoFrameFormat::Format_IMC3 :
-			return QStringLiteral( "IMC3" );
-
-		case QVideoFrameFormat::Format_IMC4 :
-			return QStringLiteral( "IMC4" );
-
-		case QVideoFrameFormat::Format_Y8 :
-			return QStringLiteral( "Y8" );
-
-		case QVideoFrameFormat::Format_Y16 :
-			return QStringLiteral( "Y16" );
-
-		case QVideoFrameFormat::Format_P010 :
-			return QStringLiteral( "P010" );
-
-		case QVideoFrameFormat::Format_P016 :
-			return QStringLiteral( "P016" );
-
-		case QVideoFrameFormat::Format_Jpeg :
-			return QStringLiteral( "JPEG" );
-
-		case QVideoFrameFormat::Format_SamplerExternalOES :
-			return QStringLiteral( "SEOES" );
-
-		case QVideoFrameFormat::Format_SamplerRect :
-			return QStringLiteral( "SR" );
-
-		case QVideoFrameFormat::Format_Invalid :
-			return QStringLiteral( "Invalid" );
-
-		default :
-			return QStringLiteral( "Unknown" );
-	}
-}
-
 void
 Frames::initCam()
 {
@@ -297,7 +194,7 @@ Frames::initCam()
 
 	m_formatString = QString( "%1x%2 at %3 fps, %4" ).arg( QString::number( s.resolution().width() ),
 		QString::number( s.resolution().height() ), QString::number( (int) s.maxFrameRate() ),
-		pixelFormatToString( s.pixelFormat() ) );
+		QVideoFrameFormat::pixelFormatToString( s.pixelFormat() ) );
 
 	emit formatStringChanged();
 
