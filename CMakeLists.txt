@@ -35,11 +35,6 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 qt6_add_resources( SRC resources.qrc )
 
-add_subdirectory( 3rdparty/libyuv )
-
-
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libyuv/include )
-
 add_executable( qt6_qcamera WIN32 ${SRC} )
 
-target_link_libraries( qt6_qcamera PUBLIC yuv ${CAMERA_JPEG} Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )
+target_link_libraries( qt6_qcamera Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )

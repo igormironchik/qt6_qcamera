@@ -33,43 +33,8 @@
 #include <QThreadPool>
 #include <QTimer>
 
-// libyuv include.
-#include <libyuv.h>
-
 
 namespace Qt6QCamera {
-
-//
-// libyuvFormat
-//
-
-libyuv::FourCC libyuvFormat( QVideoFrameFormat::PixelFormat f )
-{
-	// Enlarge this switch to handle more pixel formats if you need it.
-	switch( f )
-	{
-		case QVideoFrameFormat::Format_YUYV :
-			return libyuv::FOURCC_YUYV;
-
-		case QVideoFrameFormat::Format_UYVY :
-			return libyuv::FOURCC_UYVY;
-
-		case QVideoFrameFormat::Format_YUV420P :
-			return libyuv::FOURCC_I420;
-
-		case QVideoFrameFormat::Format_YUV422P :
-			return libyuv::FOURCC_I422;
-
-		case QVideoFrameFormat::Format_NV12 :
-			return libyuv::FOURCC_NV12;
-
-		case QVideoFrameFormat::Format_NV21 :
-			return libyuv::FOURCC_NV21;
-
-		default :
-			return libyuv::FOURCC_ANY;
-	}
-}
 
 //
 // Frames
@@ -122,40 +87,7 @@ Frames::newFrame( const QVideoFrame & frame )
 
 	if( f.isValid() )
 	{
-		const auto fmt = QVideoFrameFormat::imageFormatFromPixelFormat( f.pixelFormat() );
-
-		QImage image;
-
-		if( fmt != QImage::Format_Invalid )
-			image = QImage( f.bits( 0 ), f.width(), f.height(), f.bytesPerLine( 0 ), fmt );
-		else if( f.pixelFormat() == QVideoFrameFormat::Format_Jpeg )
-			image.loadFromData( f.bits( 0 ), f.mappedBytes( 0 ) );
-		else
-		{
-			const auto format = libyuvFormat( f.pixelFormat() );
-
-			if( format != libyuv::FOURCC_ANY )
-			{
-				std::vector< uint8_t > data( f.width() * f.height() * 4, 0 );
-
-				libyuv::ConvertToARGB( static_cast< uint8_t* > ( f.bits( 0 ) ),
-					f.bytesPerLine( 0 ) * f.height(),
-					&data[ 0 ],
-					f.width() * 4,
-					0, 0,
-					f.width(),
-					f.height(),
-					f.width(),
-					f.height(),
-					libyuv::kRotate0,
-					format );
-
-				image = QImage( static_cast< uchar* > ( &data[ 0 ] ), f.width(), f.height(),
-					f.width() * 4, QImage::Format_ARGB32 ).copy();
-			}
-			else
-				qWarning() << "Unsupported video frame format:" << format;
-		}
+		QImage image = f.toImage();
 
 		f.unmap();
 
