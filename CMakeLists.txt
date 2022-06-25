@@ -37,4 +37,4 @@ qt6_add_resources( SRC resources.qrc )
 
 add_executable( qt6_qcamera WIN32 ${SRC} )
 
-target_link_libraries( qt6_qcamera Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )
+target_link_libraries( qt6_qcamera PUBLIC Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )
