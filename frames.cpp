@@ -114,9 +114,13 @@ Frames::initCam()
 
 	const auto settings = m_cam->cameraDevice().videoFormats();
 
-	// Here you can select format of video frame.
-	int i = 0;
-	const auto s = settings.at( i );
+	auto s = settings.at( 0 );
+
+	for( const auto ss : settings )
+	{
+		if( ss.resolution().width() < s.resolution().width() )
+			s = ss;
+	}
 
 	m_cam->setFocusMode( QCamera::FocusModeAuto );
 	m_cam->setCameraFormat( s );

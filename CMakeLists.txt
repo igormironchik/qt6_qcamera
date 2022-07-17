@@ -35,6 +35,13 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 qt6_add_resources( SRC resources.qrc )
 
-add_executable( qt6_qcamera WIN32 ${SRC} )
+qt_add_executable( qt6_qcamera
+	MANUAL_FINALIZATION
+	${SRC} )
+
+set_property( TARGET qt6_qcamera APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+	${CMAKE_CURRENT_SOURCE_DIR}/android )
 
 target_link_libraries( qt6_qcamera PUBLIC Qt::Qml Qt::Quick Qt::Multimedia Qt::Widgets Qt::Gui Qt::Core )
+
+qt_finalize_executable( qt6_qcamera )
